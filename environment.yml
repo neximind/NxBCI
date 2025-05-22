@@ -1,0 +1,17 @@
+name: NxBCI
+channels:
+  - defaults
+  - conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+  - https://repo.anaconda.com/pkgs/msys2
+dependencies:
+  - python==3.9.21
+  - paho-mqtt=2.1.0
+  - numpy=1.24.4
+  - pip
+  - pip:
+    - bleak==0.22.3
