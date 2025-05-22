@@ -9,7 +9,7 @@ It is recommended that you use Anaconda to build a runtime environment, and you 
 1. Build the environment with Anaconda
 
     - Download this project to your local hard drive
-    - Open the Anaconda Prompt window and go to the EEG_APP project directory, then enter the following command:
+    - Open the Anaconda Prompt window and go to the NxBCI project directory, then enter the following command:
     ```
         conda env create -f environment.yml
     ```
