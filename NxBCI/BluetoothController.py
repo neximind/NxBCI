@@ -1,8 +1,11 @@
 import asyncio
 from bleak import BleakScanner, BleakClient
 from typing import Optional, Callable, List, Tuple, Union, Dict
+from collections import deque
 import json
 import logging
+import time
+import struct
 
 logger = logging.getLogger()
 
@@ -26,29 +29,44 @@ class BluetoothController:
 
         async def main():
             try:
-                await controller.initialize()
-                print("JSON File:", controller.json_data)
-                print("Battery Power:", controller.battery_power)
-                print("TF Card Storage:", controller.tf_card_storage)
-                print("WiFi Name:", controller.wifi_name)
-                print("Battery Power (float):", controller.battery_power_float)
-                print("TF Card Storage (float):", controller.tf_card_storage_float)
-                print("mqtt_uri:", controller.mqtt_uri)
-                print("mqtt_port:", controller.mqtt_port)
-                print("Gain:", controller.gain)
-                print("DB:", controller.DB)
+                async with controller: # auto call initialize() and close()
+                    if not controller.getState():
+                        logger.error("Failed to initialize controller.")
+                        return
+                
+                    while controller.getState():
+
+                        print("JSON File:", controller.json_data)
+                        print("Battery Power:", controller.battery_power)
+                        print("TF Card Storage:", controller.tf_card_remain_storage)
+                        print("WiFi Name:", controller.wifi_name)
+                        print("Battery Power (float):", controller.battery_power_float)
+                        print("TF Card Storage (float):", controller.tf_card_remain_storage_float)
+                        print("mqtt_uri:", controller.mqtt_uri)
+                        print("mqtt_port:", controller.mqtt_port)
+                        print("Gain:", controller.gain)
+                        pose_data = controller.pose_GetData()
+                        if pose_data is not None:
+                            print(f"accelerometer:({pose_data[0][99]},{pose_data[1][99]},{pose_data[2][99]})")
+                            print(f"thermometer:{pose_data[3][99]}")
+                            print(f"gyroscope:({pose_data[4][99]},{pose_data[5][99]},{pose_data[6][99]})")
+                        await asyncio.sleep(1)
+                    
             except Exception as e:
                 logger.error(f"Error during initialization: {e}")
             finally:
                 await controller.close()
 
         if __name__ == "__main__":
+            logging.basicConfig(level=logging.INFO,format='%(levelname)s : %(message)s',handlers=[logging.StreamHandler()])
             asyncio.run(main())
     """
      
     SERVICE_UUID = "1826"
     JSON_FILE_UUID = "FFF2"
     TF_CARD_UUID = "FFF1"
+    SAMPLE_RATE_UUID = "FFF3"
+    POSE_DATA_UUID = "FFF4"
     BATTERY_LEVEL_UUID = "2A19"
 
     def __init__(self, device_name: str = "BLE_FOR_EEG"):
@@ -73,7 +91,8 @@ class BluetoothController:
         # Raw data storage from BLE characteristics
         self.json_data: bytes = b""
         self.battery_power: bytes = b""
-        self.tf_card_storage: bytes = b""
+        self.tf_card_total_storage: bytes = b""
+        self.tf_card_remain_storage: bytes = b""
         self.wifi_name: str = ""
         self.wifi_pwd: str = ""
         self.work_mode: str = ""
@@ -84,8 +103,12 @@ class BluetoothController:
 
         # Parsed device configuration parameters
         self.battery_power_float: float = 0.0
-        self.tf_card_storage_float: float = 0.0
+        self.tf_card_remain_storage_float: float = 0.0
+        self.sample_rate = 4000
         self.updateJson = True
+        self.mpu_sample_rate = 100
+        self.ACCE_LSB = 4 / (2 ** 15)#加速度数据分辨率
+        self.GYPO_LSB = 1000 / (2 ** 15)#角速度数据分辨率
 
         # Connection retry parameters
         self.retry_count = 3  # Maximum retry attempts
@@ -93,6 +116,8 @@ class BluetoothController:
 
         self.fullChargeVoltage = 4200.0#mv
         self.cutoffVoltage = 3000.0
+        self.mpu_data_queues = [deque(maxlen=100) for _ in range(7)]
+       
     async def initialize(self) -> None:
         """
         Initialize BLE device connection with scanning and setup.
@@ -123,13 +148,25 @@ class BluetoothController:
                 return
 
             await self.update_data()
-
+            
             logger.info("[Bluetooth] Initialization completed.")
+
+            try:
+                await self.start_notification(self.POSE_DATA_UUID,self.handle_gyro_data)
+            except Exception as e:
+                logger.error(f"[Bluetooth] notification failed: {e}")
 
         except Exception as e:
             logger.error(f"[Bluetooth] Initialization failed: {e}")
 
         self.updateJson = True
+
+    async def __aenter__(self):
+        await self.initialize()
+        return self # 返回实例自身
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
 
     async def scan_devices(self) -> List[Tuple[str, str]]:
        
@@ -201,20 +238,29 @@ class BluetoothController:
             results = await asyncio.gather(
                 self.read_characteristic(self.JSON_FILE_UUID),
                 self.read_characteristic(self.BATTERY_LEVEL_UUID),
-                self.read_characteristic(self.TF_CARD_UUID)
+                self.read_characteristic(self.TF_CARD_UUID),
+                self.read_characteristic(self.SAMPLE_RATE_UUID)
             )
             
-            self.json_data, self.battery_power, self.tf_card_storage = results
-            
+            self.json_data, self.battery_power, TF_card_data,Sample_rate_data = results
+
+            if TF_card_data and len(TF_card_data) >= 3:
+                self.tf_card_total_storage = TF_card_data[0:1] # 使用切片保持bytes类型
+                self.tf_card_remain_storage = TF_card_data[2:3]
+            else:
+                logger.warning(f"[Bluetooth] Received malformed TF card data: {TF_card_data.hex()}")
+
+            self.sample_rate = int.from_bytes(Sample_rate_data, byteorder='little')
+           
             self.battery_power_float = int.from_bytes(self.battery_power, byteorder='little')
-            self.tf_card_storage_float = int.from_bytes(self.tf_card_storage, byteorder='little')
+            self.tf_card_remain_storage_float = self.tf_card_remain_storage
             
             
             if self.updateJson == False:
                 return
                 
             json_str = self.json_data.decode('utf-8').rstrip('\x00')
-            print(json_str)
+            
             try:
                 json_dict = json.loads(json_str)
                 self.wifi_name = json_dict.get("wifi_id", "")
@@ -297,7 +343,7 @@ class BluetoothController:
         self.mqtt_uri:str = ""
         self.mqtt_port:str = ""
         self.battery_power_float = 0
-        self.tf_card_storage_float = 0
+        self.tf_card_remain_storage_float = 0
        
 
     async def writeData(self,data):
@@ -343,7 +389,7 @@ class BluetoothController:
         try:
 
             self.notification_callbacks[uuid] = callback
-            await self.client.start_notify(uuid, self._notification_handler)
+            await self.client.start_notify(uuid, callback)
             logger.info(f"[Bluetooth] Started notification on {uuid}")
 
         except Exception as e:
@@ -393,30 +439,69 @@ class BluetoothController:
 
         self.client = None
 
-    def _notification_handler(self, sender: int, data: bytes) -> None:
-       
-        """
-        Internal handler for incoming characteristic notifications.
+    def handle_gyro_data(self,uuid: str, data: bytearray):
         
-        Parameters:
-            sender: Integer handle of the characteristic sending the notification
-            data: Raw data bytes from the notification
+        def mpu6500_convert_data(uint16_value):
+            if uint16_value & (1 << 15):
+                uint16_value -= (1 << 16)
+            return uint16_value
+        
+        uint16_values = struct.unpack(">7H", data)
+        converted_values = [mpu6500_convert_data(mpudata) for mpudata in uint16_values]
+        mpu6500data = [
+                        converted_values[0] * (self.ACCE_LSB),
+                        converted_values[1] * (self.ACCE_LSB),
+                        converted_values[2] * (self.ACCE_LSB),
+                        (converted_values[3] / 333.87 ) + 21,
+                        converted_values[4] * (self.GYPO_LSB),
+                        converted_values[5] * (self.GYPO_LSB),
+                        converted_values[6] * (self.GYPO_LSB)
+                        ]
+        #存储mpu6500数据到队列
+        for i in range(7):
+            self.mpu_data_queues[i].append(mpu6500data[i])
+
+    def pose_Config(self,Sample_rate):
         """
-       
-        if uuid := self._get_uuid_from_sender(sender):
+        Set the sampling rate for pose and temperature
+        Parameters:
+            Sample_rate (float): The sampling rate for pose and temperature
+        """
+    
+        if Sample_rate > 100 or Sample_rate < 0:
+            logger.error(f"[Bluetooth] Please enter a sample rate range in: ({0},{100})")
+            return
+        
+        if self.mpu_sample_rate != Sample_rate:
+            self.mpu_sample_rate = Sample_rate
+            self.mpu_data_queues = [deque(maxlen=self.mpu_sample_rate) for _ in range(7)]
+    
+    def pose_GetData(self):
+        """
+        Retrieves the latest pose and temperature information
+        Returns:
+            A "deque" containing:
+            
+            - X_a  : Acceleration along the x-axis.
+            - Y_a  : Acceleration along the y-axis.
+            - Z_a  : Acceleration along the z-axis.
+            - T    : Temperature in degrees Celsius.
+            - ω_x  : Angular velocity along the x-axis.
+            - ω_y  : Angular velocity along the y-axis.
+            - ω_z  : Angular velocity along the z-axis.
+        """
+        if not self.getState():
+            logger.error("[Bluetooth] The bluetooth connection is not established")
+            return
 
-            if callback := self.notification_callbacks.get(uuid):
+        sampleNum = self.mpu_sample_rate
 
-                try:
+        if sampleNum > len(self.mpu_data_queues[0]):
+            logger.error("[Bluetooth] The MPU buffer is not filled")
+            return
 
-                    callback(sender, data)
+        return self.mpu_data_queues
 
-                except Exception as e:
-
-                    logger.error(f"[Bluetooth] Error in notification callback: {e}")
-
-    def _get_uuid_from_sender(self, sender: int) -> Optional[str]:
-        return None
     
     def getState(self):
         """
@@ -428,30 +513,6 @@ class BluetoothController:
         state = True if self.client and self.client.is_connected else False
 
         return state
-    
-    
-
-    def __del__(self):
-       
-        """
-        Class destructor that ensures proper resource cleanup.
-        """
-        if self.client and self.client.is_connected:
-
-            try:
-                loop = asyncio.get_event_loop()
-
-                if loop.is_running():
-
-                    loop.create_task(self.close())
-
-                else:
-
-                    loop.run_until_complete(self.close())
-
-            except Exception as e:
-
-                logger.warning(f"[Bluetooth] Error during cleanup: {e}")
 
     async def bt_SetBluetoothTarget(self,target):
             """
@@ -659,31 +720,54 @@ class BluetoothController:
 
         else:
             logger.error("[Bluetooth] The BLE device is not connected")
-
-"""
-# just for test
-controller = BluetoothController(device_name="BLE_FOR_EEG")
-
-async def main():
-    try:
-        await controller.initialize()
-        print("JSON File:", controller.json_data)
-        print("Battery Power:", controller.battery_power)
-        print("TF Card Storage:", controller.tf_card_storage)
-        print("WiFi Name:", controller.wifi_name)
-        print("Battery Power (float):", controller.battery_power_float)
-        print("TF Card Storage (float):", controller.tf_card_storage_float)
-        print("mqtt_uri:", controller.mqtt_uri)
-        print("mqtt_port:", controller.mqtt_port)
-        print("Gain:", controller.gain)
-        print("DB:", controller.DB)
-
-        await controller.bt_ReconnectBluetooth()
-    except Exception as e:
-        logger.error(f"Error during initialization: {e}")
-    finally:
-        await controller.close()
-
-if __name__ == "__main__":
-    asyncio.run(main())
-"""
+        
+    async def bt_SetSampleRate(self, sampleRate):
+        """
+        Set the sample rate of the current device.
+        
+        Parameters:
+            sampleRate (int): The sample rate to set. Must be one of: 500, 1000, 2000, 4000 Hz
+            
+        Returns:
+            bool: True if successful, False otherwise
+            
+        Raises:
+            ValueError: If sampleRate is not supported
+        """
+    
+        SUPPORTED_RATES = (500, 1000, 2000, 4000)
+        
+        # 参数验证
+        if sampleRate not in SUPPORTED_RATES:
+            error_msg = f"Invalid sample rate {sampleRate}Hz. Supported rates: {SUPPORTED_RATES}"
+            logger.error(f"[Bluetooth] {error_msg}")
+            raise ValueError(error_msg)
+        
+        try:
+            logger.info(f"[Bluetooth] Setting sample rate to {sampleRate}Hz")
+            sampleRate_bytes = sampleRate.to_bytes(length=2, byteorder='little')
+            await self.client.write_gatt_char(
+                self.SAMPLE_RATE_UUID, 
+                sampleRate_bytes, 
+                response=True
+            )
+            logger.info(f"[Bluetooth] Sample rate successfully set to {sampleRate}Hz")
+            return True
+            
+        except Exception as e:
+            logger.error(f"[Bluetooth] Failed to set sample rate to {sampleRate}Hz: {e}")
+            return False
+        
+    async def bt_GetSampleRate(self):
+        """
+        Set the sample rate of the current device.
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        try:
+            sampleRate_bytes = await self.read_characteristic(self.SAMPLE_RATE_UUID)
+            self.sample_rate = int.from_bytes(sampleRate_bytes, byteorder='little')
+        except Exception as e:
+            logger.error(f"[Bluetooth] Failed to read sample rate: {e}")
+        return self.sample_rate

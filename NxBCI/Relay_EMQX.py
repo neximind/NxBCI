@@ -27,12 +27,12 @@ class Relay:
         Initialize the Relay object.
 
         Args:
-            cloud_broker_address (str, optional): IP address or hostname of the cloud MQTT broker. Defaults to ''.
+            cloud_broker_address (str, optional): IP address or hostname of the cloud MQTT broker.
             cloud_port (int, optional): Port of the cloud MQTT broker. Defaults to 1883.
-            cloud_topic (str, optional): MQTT topic to publish data to. Defaults to ''.
-            client_id (str, optional): Client ID for the MQTT connection. Defaults to ''.
-            username (str, optional): Username for MQTT authentication. Defaults to ''.
-            password (str, optional): Password for MQTT authentication. Defaults to ''.
+            cloud_topic (str, optional): MQTT topic to publish data to.
+            client_id (str, optional): Client ID for the MQTT connection.
+            username (str, optional): Username for MQTT authentication.
+            password (str, optional): Password for MQTT authentication.
         """
         self.isConnected = False
         self.cloud_broker_address = cloud_broker_address
@@ -91,4 +91,4 @@ class Relay:
         if status == 0:
             pass
         else:
-            logger.error(f"Failed to send message to topic {self.cloud_topic}")
+            logger.error(f"[Relay] Failed to send message to topic {self.cloud_topic}")
