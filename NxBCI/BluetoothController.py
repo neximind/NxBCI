@@ -760,10 +760,10 @@ class BluetoothController:
         
     async def bt_GetSampleRate(self):
         """
-        Set the sample rate of the current device.
+        Get the sample rate of the current device.
         
         Returns:
-            bool: True if successful, False otherwise
+            Int: Sample rate of the current device.
         """
         try:
             sampleRate_bytes = await self.read_characteristic(self.SAMPLE_RATE_UUID)

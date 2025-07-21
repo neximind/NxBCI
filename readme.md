@@ -1,5 +1,5 @@
 # NxBCI
-NxBCI is an API designed for interacting with our EEG/EMG acquisition devices. It enables versatile communication via protocols like TCP, MQTT, and Bluetooth, and also supports saving acquired bioelectric data directly to the device's local TF storage card.
+This interface module is designed for customers who have purchased our equipment. It enables seamless data acquisition from the devices and provides control over operational parameters and device status monitoring.
 
 ---
 
