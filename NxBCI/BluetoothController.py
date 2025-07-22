@@ -478,7 +478,7 @@ class BluetoothController:
     
     def pose_GetData(self):
         """
-        Retrieves the latest pose and temperature information
+        Retrieves the latest pose and temperature information. Tips:Bluetooth will receive data from the device only when the TCP_Receiver is receiving data.
         Returns:
             A "deque" containing:
             

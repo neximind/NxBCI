@@ -70,7 +70,7 @@ async def main():
             # Loop to get data
             for _ in range(10): # Example: loop 10 times
                 # Get the latest pose data
-                pose_data = controller.pose_GetData()
+                pose_data = controller.pose_GetData() # Bluetooth will receive data from the device only when the TCP_Receiver is receiving data.
                 if pose_data:
                     # pose_data is a list of 7 deques for
                     # Accel(X,Y,Z), Temp, Gyro(X,Y,Z)
@@ -591,7 +591,7 @@ This class provides a robust solution for handling TCP data streams in a separat
 ```python
 import logging
 import time
-from NxBCI.TCP_Receiver import TCP_Receiver # Replace with the actual module name
+from NxBCI.TCP_Receiver import TCP_Receiver
 
 # It's recommended to configure logging in your main script
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
