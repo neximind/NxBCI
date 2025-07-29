@@ -78,15 +78,15 @@ Here are some possible use cases:
 
 [How to purchase NxBCI accessories.](https://www.github.com)
 
-[NxBCI software user manual]( https://www.github.com)
+[NxBCI software user manual]( https://github.com/neximind/NxBCI/blob/main/Software%20Documents/IOS/NxBCI_User_Manual.md)
 
 ## Apps:
-[Windows]( https://www.github.com)
+[Windows]( https://github.com/neximind/NxBCI/releases/tag/v1.0.0-preview)
 [MacOS]( https://www.github.com)
 [IOS]( https://www.github.com)
-[Android]( https://www.github.com)
+**Android** is under development now.
 ## SDK:
-[NxBCI SDK]( https://www.github.com)
+[NxBCI SDK]( https://github.com/neximind/NxBCI/tree/main/PythonSDK)
 
 ## Measured Data:
 
