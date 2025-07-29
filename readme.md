@@ -74,7 +74,7 @@ Here are some possible use cases:
 
 [NxBCI hardware user manual](https://www.github.com)
 
-[More about NxBCI](https://www.github.com)
+[More about NxBCI](https://github.com/neximind/NxBCI/blob/main/More%20About%20NxBCI/More_About_%20NxBCI_en.md)
 
 [How to purchase NxBCI accessories.](https://www.github.com)
 
