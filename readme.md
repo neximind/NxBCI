@@ -140,6 +140,7 @@ open eyes：
      <video src="https://github.com/neximind/NxBCI/blob/main/media/video/emg.mp4" height="400" width=auto controls></video>    
 </div>
 
+[![test](https://youtu.be/TlHIAkXt1_o?si=tVVW6DWbBlCfcPaj/0.jpg)](https://youtu.be/TlHIAkXt1_o?si=tVVW6DWbBlCfcPaj)
 ## Team and Values:
 
 We are electronic enthusiasts from a gaming company, driven by great curiosity and passion for technology. However, due to the high cost of commercially available BCI products, we decided to create an affordable alternative ourselves. After rigorous experimentation, we discovered that the audio ADC is surprisingly robust (we even utilized it for an acoustic camera, which will be unveiled shortly). Therefore, this led to our current solution. Due to the lack of professional equipment, we cannot guarantee that this device will achieve the performance of the ADS1299 solution. If you are looking for professional equipment backed by a chip manufacturer, please choose the ADS1299 or an equivalent solution. If you possess sufficient testing capability to provide us with comparative test data, we would be extremely grateful. Our aim in creating this device is to enable more curious children to realize their ideas, such as applications that use EMG data to control prosthetic limbs, potentially helping those in need.
