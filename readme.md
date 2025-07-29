@@ -5,7 +5,7 @@
 </font>
 
 <div align=center>
-<img src="./media/image/nxbci_1.png" height="600" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/nxbci_1.png" height="600" width=auto >
 </div>
 
 ## Project Introduction:
@@ -48,26 +48,6 @@ Additional functions:
 **Extended option support required
 
 ***GPS is optional according to local laws
-
-## Type of Kit:
- 
-<font color=#40A0D0 size=6> 99$ </font> PCB Only Kit for electronic enthusiasts, cost-effective, ideal for learning, and can be easily integrated into other systems for collaborative work.
-
-<div align=center>
-<img src="./media/image/kit_0.png" height="400" width=auto >
-</div>
-
-<font color=#40A0D0 size=6> 149$ </font> Standard Kit includes a standard shell, Connection Cable, Passive EMG Wristband DIY Kit, exquisitely packaged, suitable for most users.
-
-<div align=center>
-<img src="./media/image/kit_1.png" height="400" width=auto >
-</div>
-
-<font color=#40A0D0 size=6> $199 </font> Expansion kit includes a standard shell, a reinforced shell, two battery adapter bases, connection cables, an active electromyography wristband DIY kit, a UART signal isolator, and exquisite packaging. It is suitable for users who need to cope with stronger interference environments or require enhanced battery life.
-
-<div align=center>
-<img src="./media/image/default.png" height="100" width=auto >
-</div>
 
 ## Disclaimer:
 1. As this device will directly connect electrically with the human body, safety is its primary consideration. Therefore, under any circumstances, the device should remain floating (i.e., connected only to the target under test). If it is to be connected as a sub-device to other equipment, reliable isolation devices must be employed for communication. It is prohibited to connect the device to a human body while it is charging; doing so could result in it becoming connected to the mains electrical supply if the charger fails, <font color=#FF0000>which could lead to fatal consequences</font>. It is the user's responsibility to be aware of the relevant safety regulations regarding biopotential signal measurements. Please ensure that you are familiar with the pertinent knowledge before use.
@@ -113,51 +93,51 @@ Here are some possible use cases:
 1. Input the noise characteristics after the short circuit (X1000)
 
 <div align=center>
-    <img src="./media/image/test_fig_1.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_1.png" height="400" width=auto >
 </div>
 
 2. Utilize a signal generator to produce a sine wave with a frequency of 10Hz and a peak-to-peak voltage of 10µV as the input signal for the EasyBCI device, focusing on its time-domain characteristics.
 <div align=center>
-    <img src="./media/image/test_fig_2.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_2.png" height="400" width=auto >
 </div>
 
 3. Grip the electrodes to measure the electrocardiogram.                
 <div align=center>
-    <img src="./media/image/test_fig_3.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_3.png" height="400" width=auto >
 </div>
 
 4. Alpha waves of subjects in the states of closed eyes and open eyes.
 
 closed eyes：
 <div align=center>
-    <img src="./media/image/test_fig_4.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_4.png" height="600" width=auto >
 </div>
 
 open eyes：
 <div align=center>
-    <img src="./media/image/test_fig_5.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_5.png" height="600" width=auto >
 </div>
 
 5. SSVEP 7Hz response：
 <div align=center>
-    <img src="./media/image/test_fig_6.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_6.png" height="600" width=auto >
 </div>
 
 6. SSVEP Video of the testing process.
 <div align=center>
-    <video src="./media/video/ssvep.mp4" height="400" width=auto controls></video>    
+    <video src="https://github.com/neximind/NxBCI/blob/main/media/video/ssvep.mp4" height="400" width=auto controls></video>    
 </div>
 
 7. Alpha Video of the testing process.
 
 <div align=center>
-    <video src="./media/video/alpha.mp4" height="400" width=auto controls></video>    
+    <video src="https://github.com/neximind/NxBCI/blob/main/media/video/alpha.mp4" height="400" width=auto controls></video>    
 </div>
 
 9. sEMG Video of the testing process. （using ios App）
 
 <div align=center>
-     <video src="./media/video/emg.mp4" height="400" width=auto controls></video>    
+     <video src="https://github.com/neximind/NxBCI/blob/main/media/video/emg.mp4" height="400" width=auto controls></video>    
 </div>
 
 ## Team and Values:
@@ -175,7 +155,7 @@ As the specific applications have exceeded our capabilities, the best choice is 
 Our team aims to raise sufficient funds for mold development, in order to replace the current 3D printed casing, and to further research support for expandable accessories. A portion of the funds will also be allocated to continue the acoustic camera project. We hope for your understanding and support to present you with greater surprises.This is the acoustic camera, currently in the prototype stage.
 
 <div align=center>
-<img src="./media/image/oac_1.png" height="400" width=auto >
-<img src="./media/image/oac_0.png" height="400" width=auto >
-<img src="./media/image/oac_2.png" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_1.png" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_0.png" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_2.png" height="400" width=auto >
 </div>
