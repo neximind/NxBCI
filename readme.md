@@ -72,11 +72,11 @@ Here are some possible use cases:
 
 ## Technical documentation：
 
-[NxBCI hardware user manual](https://www.github.com)
+[NxBCI hardware user manual](https://github.com/neximind/NxBCI/blob/main/Hardware/Hardware_User_Manual.md)
 
 [More about NxBCI](https://github.com/neximind/NxBCI/blob/main/More%20About%20NxBCI/More_About_%20NxBCI_en.md)
 
-[How to purchase NxBCI accessories.](https://www.github.com)
+[How to purchase NxBCI accessories.](https://github.com/neximind/NxBCI/blob/main/Accessories%20List/Accessories%20List.md)
 
 [NxBCI software user manual]( https://github.com/neximind/NxBCI/blob/main/Software%20Documents/IOS/NxBCI_User_Manual.md)
 
