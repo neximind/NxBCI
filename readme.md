@@ -124,15 +124,27 @@ open eyes：
 </div>
 
 6. SSVEP Video of the testing process.
-    [![](http://img.youtube.com/vi/TlHIAkXt1_o/0.jpg)](https://youtu.be/watch?v=TlHIAkXt1_o)
+<div align=center>
+    <a href="https://youtu.be/watch?v=TlHIAkXt1_o">
+        <img src="http://img.youtube.com/vi/TlHIAkXt1_o/0.jpg" alt="SSVEP Video of the testing process.">
+    </a>
+</div>
 
 7. Alpha Video of the testing process.
 
-    [![](http://img.youtube.com/vi/Y4VIpdCZ8LY/0.jpg)](https://youtu.be/watch?v=Y4VIpdCZ8LY)
+<div align=center>
+    <a href="https://youtu.be/watch?v=Y4VIpdCZ8LY">
+        <img src="http://img.youtube.com/vi/Y4VIpdCZ8LY/0.jpg" alt="Alpha Video of the testing process.">
+    </a>
+</div>
 
 9. sEMG Video of the testing process. （using ios App）
 
-    [![](http://img.youtube.com/vi/LbqRUQPh_qw/0.jpg)](https://youtu.be/watch?v=LbqRUQPh_qw)
+<div align=center>
+    <a href="https://youtu.be/watch?v=LbqRUQPh_qw">
+        <img src="http://img.youtube.com/vi/LbqRUQPh_qw/0.jpg" alt="sEMG Video of the testing process. （using ios App）">
+    </a>
+</div>
 
 ## Team and Values:
 
