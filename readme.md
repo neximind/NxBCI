@@ -155,9 +155,9 @@ We are electronic enthusiasts from a gaming company, driven by great curiosity a
 
 As the specific applications have exceeded our capabilities, the best choice is to open the platform for everyone to participate in its development. We have established a platform for communication where you can inform us of new ideas, suggestions for modifications, issues encountered, and more. We sincerely look forward to your attention and participation.
 
-* [NxBCI Discussion Group](https://www.github.com)
+* [NxBCI Discussion Group](https://www.reddit.com/r/1NxBCI/)
 
-* [Project Hardware Crowdfunding Link](https://www.github.com)
+* [Crowdfunding Link](https://www.github.com)
 
 * [Official Website](https://www.neximind.com/)
 
