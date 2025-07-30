@@ -157,7 +157,7 @@ As the specific applications have exceeded our capabilities, the best choice is 
 
 * [NxBCI Discussion Group](https://www.reddit.com/r/1NxBCI/)
 
-* [Crowdfunding Link](https://www.github.com)
+* [Indigo Link](https://www.github.com)
 
 * [Official Website](https://www.neximind.com/)
 
