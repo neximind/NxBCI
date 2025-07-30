@@ -5,7 +5,7 @@
 </font>
 
 <div align=center>
-<img src="https://github.com/neximind/NxBCI/blob/main/media/image/nxbci_1.png" height="600" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/nxbci_1.jpg" height="600" width=auto >
 </div>
 
 ## Project Introduction:
@@ -94,40 +94,40 @@ Here are some possible use cases:
 1. Input the noise characteristics after the short circuit (X1000)
 
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_1.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_1.jpg" height="400" width=auto >
 </div>
 
 2. Utilize a signal generator to produce a sine wave with a frequency of 10Hz and a peak-to-peak voltage of 10µV as the input signal for the EasyBCI device, focusing on its time-domain characteristics.
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_2.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_2.jpg" height="400" width=auto >
 </div>
 
 3. Grip the electrodes to measure the electrocardiogram.                
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_3.png" height="400" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_3.jpg" height="400" width=auto >
 </div>
 
 4. Alpha waves of subjects in the states of closed eyes and open eyes.
 
 closed eyes：
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_4.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_4.jpg" height="600" width=auto >
 </div>
 
 open eyes：
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_5.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_5.jpg" height="600" width=auto >
 </div>
 
 5. SSVEP 7Hz response：
 <div align=center>
-    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_6.png" height="600" width=auto >
+    <img src="https://github.com/neximind/NxBCI/blob/main/media/image/test_fig_6.jpg" height="600" width=auto >
 </div>
 
 6. SSVEP Video of the testing process.
 <div align=center>
     <a href="https://youtu.be/watch?v=TlHIAkXt1_o">
-        <img src="http://img.youtube.com/vi/TlHIAkXt1_o/0.jpg" alt="SSVEP Video of the testing process.">
+        <img src="http://img.youtube.com/vi/TlHIAkXt1_o/0.png" alt="SSVEP Video of the testing process.">
     </a>
 </div>
 
@@ -135,7 +135,7 @@ open eyes：
 
 <div align=center>
     <a href="https://youtu.be/watch?v=Y4VIpdCZ8LY">
-        <img src="http://img.youtube.com/vi/Y4VIpdCZ8LY/0.jpg" alt="Alpha Video of the testing process.">
+        <img src="http://img.youtube.com/vi/Y4VIpdCZ8LY/0.png" alt="Alpha Video of the testing process.">
     </a>
 </div>
 
@@ -143,7 +143,7 @@ open eyes：
 
 <div align=center>
     <a href="https://youtu.be/watch?v=LbqRUQPh_qw">
-        <img src="http://img.youtube.com/vi/LbqRUQPh_qw/0.jpg" alt="sEMG Video of the testing process. （using ios App）">
+        <img src="http://img.youtube.com/vi/LbqRUQPh_qw/0.png" alt="sEMG Video of the testing process. （using ios App）">
     </a>
 </div>
 
@@ -155,14 +155,20 @@ We are electronic enthusiasts from a gaming company, driven by great curiosity a
 
 As the specific applications have exceeded our capabilities, the best choice is to open the platform for everyone to participate in its development. We have established a platform for communication where you can inform us of new ideas, suggestions for modifications, issues encountered, and more. We sincerely look forward to your attention and participation.
 
-[NxBCI Discussion Group](https://www.github.com)
+* [NxBCI Discussion Group](https://www.github.com)
+
+* [Project Hardware Crowdfunding Link](https://www.github.com)
+
+* [Official Website of Our Equipment Manufacturing Company](https://www.github.com)
+
+We hope to have your support.
 
 ## Future Plans:
 
 Our team aims to raise sufficient funds for mold development, in order to replace the current 3D printed casing, and to further research support for expandable accessories. A portion of the funds will also be allocated to continue the acoustic camera project. We hope for your understanding and support to present you with greater surprises.This is the acoustic camera, currently in the prototype stage.
 
 <div align=center>
-<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_1.png" height="400" width=auto >
-<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_0.png" height="400" width=auto >
-<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_2.png" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_1.jpg" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_0.jpg" height="400" width=auto >
+<img src="https://github.com/neximind/NxBCI/blob/main/media/image/oac_2.jpg" height="400" width=auto >
 </div>
