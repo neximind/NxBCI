@@ -266,7 +266,7 @@ The Bluetooth connection is essential for configuring the device's most importan
 
 ### Amplitude Settings
 
-Clicking the Amplitude Settings button <img src="./Image/output_circle.png" alt="Amplitude_settings" width="30"> opens the panel shown below. This panel allows you to adjust the vertical display scale for each channel's received data.
+Clicking the Amplitude Settings button <img src="./Image/output_circle.jpg" alt="Amplitude_settings" width="30"> opens the panel shown below. This panel allows you to adjust the vertical display scale for each channel's received data.
 
 <img src="./Image/Amplitute_settings.jpeg" alt="Amplitude Settings Panel" width="300">
 
