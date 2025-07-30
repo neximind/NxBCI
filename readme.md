@@ -82,8 +82,8 @@ Here are some possible use cases:
 
 ## Apps:
 [Windows]( https://github.com/neximind/NxBCI/releases/tag/v1.0.0-preview)<br>
-[MacOS]( https://www.github.com)<br>
-[IOS]( https://www.github.com)<br>
+[MacOS]( https://testflight.apple.com/join/88A1qnYK)<br>
+[IOS]( https://testflight.apple.com/join/88A1qnYK)<br>
 **Android** is under development now.<br>
 
 ## SDK:
