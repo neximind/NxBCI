@@ -127,7 +127,7 @@ open eyes：
 6. SSVEP Video of the testing process.
 <div align=center>
     <a href="https://youtu.be/watch?v=TlHIAkXt1_o">
-        <img src="http://img.youtube.com/vi/TlHIAkXt1_o/0.png" alt="SSVEP Video of the testing process.">
+        <img src="http://img.youtube.com/vi/TlHIAkXt1_o/0.jpg" alt="SSVEP Video of the testing process.">
     </a>
 </div>
 
@@ -135,7 +135,7 @@ open eyes：
 
 <div align=center>
     <a href="https://youtu.be/watch?v=Y4VIpdCZ8LY">
-        <img src="http://img.youtube.com/vi/Y4VIpdCZ8LY/0.png" alt="Alpha Video of the testing process.">
+        <img src="http://img.youtube.com/vi/Y4VIpdCZ8LY/0.jpg" alt="Alpha Video of the testing process.">
     </a>
 </div>
 
@@ -143,7 +143,7 @@ open eyes：
 
 <div align=center>
     <a href="https://youtu.be/watch?v=LbqRUQPh_qw">
-        <img src="http://img.youtube.com/vi/LbqRUQPh_qw/0.png" alt="sEMG Video of the testing process. （using ios App）">
+        <img src="http://img.youtube.com/vi/LbqRUQPh_qw/0.jpg" alt="sEMG Video of the testing process. （using ios App）">
     </a>
 </div>
 
