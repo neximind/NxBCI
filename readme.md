@@ -159,7 +159,7 @@ As the specific applications have exceeded our capabilities, the best choice is 
 
 * [Project Hardware Crowdfunding Link](https://www.github.com)
 
-* [Official Website of Our Equipment Manufacturing Company](https://www.github.com)
+* [Official Website](https://www.neximind.com/)
 
 We hope to have your support.
 
