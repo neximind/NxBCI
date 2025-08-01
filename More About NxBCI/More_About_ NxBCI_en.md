@@ -1,6 +1,6 @@
 # Introduction：
 
-The NxBCI development team consists of game engine programmers. About a year ago, we decided to enhance games with brain-computer or electromyographic control capabilities. However, after examining the existing solutions, we were not satisfied with any of them. Therefore, we decided to create a device that meets our needs, leading to the NxBCI project.This article outlines the challenges encountered during the development of NxBCI and the solutions we have currently chosen. If you have any good suggestions, please submit them to [NxBCI On Github](https://www.github.com) or contact the author via E-Mail: <mengxin@pixelgame.net>.
+The NxBCI development team consists of game engine programmers. About a year ago, we decided to enhance games with brain-computer or electromyographic control capabilities. However, after examining the existing solutions, we were not satisfied with any of them. Therefore, we decided to create a device that meets our needs, leading to the NxBCI project.This article outlines the challenges encountered during the development of NxBCI and the solutions we have currently chosen. If you have any good suggestions, please submit them to [NxBCI On Github](https://github.com/neximind/NxBCI) or contact the author via E-Mail: <mengxin@pixelgame.net>.
 
 # NxBCI Hardware Architecture:
 

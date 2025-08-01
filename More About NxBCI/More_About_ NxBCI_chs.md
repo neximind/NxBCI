@@ -1,7 +1,7 @@
 # 简介
 
 NxBCI 开发团队是由游戏引擎程序员组成，大概在一年前我们打算为游戏增加脑机或者肌电控制能力，但是考察了现有的一些方案后都不太满意，于是我们决定自己做一个能满足需求的设备，于是有了NxBCI项目。
-这篇文章介绍了 NxBCI 研发中遇到的问题以及目前选择的解决方案，如果您有好的建议请提交 [NxBCI On Github](https://www.github.com) 或者 E-Mail:<mengxin@pixelgame.net> 联系作者。
+这篇文章介绍了 NxBCI 研发中遇到的问题以及目前选择的解决方案，如果您有好的建议请提交 [NxBCI On Github](https://github.com/neximind/NxBCI) 或者 E-Mail:<mengxin@pixelgame.net> 联系作者。
 
 # NxBCI 硬件架构
 

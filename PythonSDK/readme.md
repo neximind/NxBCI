@@ -23,7 +23,7 @@ First, clone this repository to your local computer:
 
 ```bash
 git clone https://github.com/neximind/NxBCI.git
-cd NxBCI
+cd NxBCI/PythonSDK/NxBCI
 ```
 ### 2. Create and Activate the Conda Environment
 
