@@ -164,6 +164,7 @@ As the specific applications have exceeded our capabilities, the best choice is 
 * [Official Website](https://www.neximind.com/)
 
 * [Youtube Channel](https://www.youtube.com/playlist?list=PLwwj-QSNs9nMl8WorIzZlQYsx84u7f4Ny)
+<br>
 We hope to have your support.
 
 ## Future Plans:
