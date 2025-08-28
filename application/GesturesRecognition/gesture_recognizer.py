@@ -460,13 +460,3 @@ class GestureRecognizer:
         self.model.eval()
         
         logger.info(f"Model loaded from {path} with accuracy {self.test_acc:.4f}")
-
-"""
-#Example usage:
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-gestures_i = ["fist", "openHand", "left", "right","yes","rest"]
-model = GestureRecognizer(gestures=gestures_i,window_size=100,stride=50)
-model._load_data_from_files(data_dir='data')
-model.train(data_dir='data')
-"""

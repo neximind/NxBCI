@@ -47,6 +47,11 @@ class TCP_Receiver:
                         print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
                     else:
                         print("No valid GPS data received yet.")
+
+                    if gyro_data and gyro_data['roll']:
+                        print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
+            else:
+                print("No valid GYRO data received yet.")
                 else:
                     print("Connection is OFF. Waiting for the receiver to reconnect...")
 
@@ -219,22 +224,21 @@ class TCP_Receiver:
             
             # --- 2. Process GPS Data (bytes 48-58) if valid ---
             if packet[48] == 0x59:
-                lat_val_raw = int.from_bytes(packet[49:53], 'big', signed=True)
-                lon_val_raw = int.from_bytes(packet[54:58], 'big', signed=True)
+                lat_val_raw = struct.unpack('>f', packet[49:53])[0]
+                lon_val_raw = struct.unpack('>f', packet[54:58])[0]
 
                 latitude,longitude = self._Parse_GPS(lat_raw =lat_val_raw,lon_raw=lon_val_raw)
-                lat_dir = chr(packet[53])
-                lon_dir = chr(packet[58])
+                lat_dir = ' '
+                lon_dir = ' '
 
-                if packet[53] in (ord('N'), ord('S')):
-                    lat_dir = chr(packet[53])
+                if packet[53:54] in {b'N', b'S'}:
+                    lat_dir = packet[53:54].decode('ascii')
 
-                if packet[58] in (ord('E'), ord('W')):
-                    lon_dir = chr(packet[58])
+                if packet[58:59] in {b'E', b'W'}:
+                    lon_dir = packet[58:59].decode('ascii')
                 
-                print(f"Lat:{str(lat_dir)}, Lon: {str(lon_dir)}")
-                self.gps_data['latitude'].append(str(latitude)+lat_dir)
-                self.gps_data['longitude'].append(str(longitude)+lon_dir)
+                self.gps_data['latitude'].append(str(latitude)+"°"+lat_dir)
+                self.gps_data['longitude'].append(str(longitude)+"°"+lon_dir)
             
             # --- 3. Process Gyroscope Data (bytes 59-65) if valid ---
             if packet[59] == 0x59:
@@ -308,44 +312,3 @@ class TCP_Receiver:
         with self._state_lock:
             return {key: q.copy() for key, q in self.gyro_data.items()}
         
-# Configure logging in your main script
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Initialize the receiver
-receiver = TCP_Receiver(channels=16, sample_rate=500, Ip="192.168.4.1", port=8080)
-
-# Start the background worker thread
-receiver.start()
-
-try:
-    while True:
-        time.sleep(2)
-        if receiver.is_connected():
-            print("\n--- Connection is ON ---")
-            # Safely get a copy of the data queues
-            emg_data = receiver.get_emg_data()
-            gps_data = receiver.get_gps_data()
-            gyro_data = receiver.get_gyro_data()
-
-            print(f"Queue lengths: EMG={len(emg_data[0]) if emg_data else 0}, GPS={len(gps_data['latitude']) if gps_data else 0}, Gyro={len(gyro_data['roll']) if gyro_data else 0}")
-
-            if gps_data and gps_data['latitude']:
-                print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
-            else:
-                print("No valid GPS data received yet.")
-
-            if gyro_data and gyro_data['roll']:
-                print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
-            else:
-                print("No valid GYRO data received yet.")
-                
-        else:
-            print("Connection is OFF. Waiting for the receiver to reconnect...")
-
-except KeyboardInterrupt:
-    print("Program interrupted by user.")
-finally:
-    print("Stopping receiver service...")
-    # Ensure the thread and resources are cleaned up on exit
-    receiver.stop()
-    print("Receiver service stopped.")
