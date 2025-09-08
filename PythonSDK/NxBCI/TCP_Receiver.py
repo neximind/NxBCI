@@ -4,7 +4,7 @@ import threading
 import time
 import logging
 from collections import deque
-from typing import List, Optional, Deque
+from typing import List, Optional, Deque, Dict, Union
 
 class TCP_Receiver:
     """
@@ -13,6 +13,12 @@ class TCP_Receiver:
     This class utilizes a single worker thread model to automatically handle
     connection, data reception, and auto-reconnection upon disconnection.
     All public methods are designed to be thread-safe.
+
+    Updated to support 66-byte data packets which include EMG, GPS, and Gyroscope data.
+    
+    WARNING: This version only stores GPS and Gyroscope data when it is marked as valid.
+    This will lead to data desynchronization between EMG, GPS, and Gyroscope streams
+    if some packets contain invalid data. Use with caution.
 
     Example Usage:
 
@@ -29,13 +35,23 @@ class TCP_Receiver:
             while True:
                 time.sleep(2)
                 if receiver.is_connected():
+                    print("\n--- Connection is ON ---")
                     # Safely get a copy of the data queues
-                    latest_data_queues = receiver.get_data()
-                    if latest_data_queues and latest_data_queues[0]:
-                        # Access the latest value from the first channel's queue
-                        print(f"Connection is ON. Channel 0 latest value: {list(latest_data_queues[0])[-1]}")
+                    emg_data = receiver.get_emg_data()
+                    gps_data = receiver.get_gps_data()
+                    gyro_data = receiver.get_gyro_data()
+
+                    print(f"Queue lengths: EMG={len(emg_data[0]) if emg_data else 0}, GPS={len(gps_data['latitude']) if gps_data else 0}, Gyro={len(gyro_data['roll']) if gyro_data else 0}")
+
+                    if gps_data and gps_data['latitude']:
+                        print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
                     else:
-                        print("Connection is ON, but no data has been received yet.")
+                        print("No valid GPS data received yet.")
+
+                    if gyro_data and gyro_data['roll']:
+                        print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
+                    else:
+                        print("No valid GYRO data received yet.")
                 else:
                     print("Connection is OFF. Waiting for the receiver to reconnect...")
 
@@ -49,7 +65,7 @@ class TCP_Receiver:
     """
 
     # --- Class Constants ---
-    PACKET_SIZE = 48  # Expected size of each TCP packet in bytes
+    PACKET_SIZE = 66  # Expected size of each TCP packet in bytes (48 EMG + 18 GPS/Gyro)
     RECONNECT_DELAY = 3  # Delay in seconds before attempting to reconnect
 
     def __init__(self, channels: int = 16, sample_rate: int = 500, duration: int = 4, Ip: str = "192.168.4.1", port: int = 8080):
@@ -65,7 +81,24 @@ class TCP_Receiver:
         
         # Data storage and configuration
         self.num_channels = channels
-        self.data_queues: List[Deque[float]] = [deque(maxlen=sample_rate * duration) for _ in range(channels)]
+        queue_len = sample_rate * duration
+
+        # EMG data queues
+        self.emg_data_queues: List[Deque[float]] = [deque(maxlen=queue_len) for _ in range(channels)]
+        
+        # GPS data storage
+        
+        self.gps_data: Dict[str, Deque[str]] = {
+            'latitude': deque(maxlen=10),
+            'longitude': deque(maxlen=10)
+        }
+        
+        # Gyroscope data storage
+        self.gyro_data: Dict[str, Deque[float]] = {
+            'roll': deque(maxlen=2000),
+            'pitch': deque(maxlen=2000),
+            'yaw': deque(maxlen=2000)
+        }
         
         # Voltage conversion constants
         self.LSB = 1.5 / (2 ** 23)  # Least Significant Bit resolution for voltage conversion
@@ -91,10 +124,6 @@ class TCP_Receiver:
     def start(self):
         """
         Starts the background worker thread.
-
-        The worker thread handles connection, data reception, and reconnection.
-        This method is thread-safe and idempotent (calling it multiple times
-        has no harmful effect).
         """
         with self._state_lock:
             if self._worker_thread and self._worker_thread.is_alive():
@@ -108,63 +137,44 @@ class TCP_Receiver:
 
     def stop(self):
         """
-        Stops the background worker thread and cleans up resources (e.g., closes the socket).
-        This method is thread-safe.
+        Stops the background worker thread and cleans up resources.
         """
         self.logger.info("[TCP_Receiver] Stopping receiver service...")
         self._stop_event.set()
         
-        # Closing the socket will interrupt a blocking recv() call in the worker thread
         with self._socket_lock:
             if self._client_socket:
                 self._client_socket.close()
         
         if self._worker_thread and self._worker_thread.is_alive():
-            # Wait for the thread to finish gracefully
             self._worker_thread.join(timeout=2.0)
-            if self._worker_thread.is_alive():
-                self.logger.warning("[TCP_Receiver] Worker thread did not terminate in time.")
         
         self.logger.info("[TCP_Receiver] Receiver service stopped.")
 
     def _worker_loop(self):
         """
         The main loop for the single worker thread.
-
-        It manages a lifecycle of connecting, receiving data, and then
-        cleaning up and reconnecting on disconnection.
         """
         while not self._stop_event.is_set():
             try:
-                # --- Phase 1: Connect ---
                 self.logger.info(f"[TCP_Receiver] Attempting to connect to {self.server_address}...")
                 with self._socket_lock:
-                    # Create a new socket for each connection attempt
                     self._client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    self._client_socket.settimeout(5.0)  # Set a timeout for the connect operation
+                    self._client_socket.settimeout(5.0)
                     self._client_socket.connect(self.server_address)
                 
-                # Update connection status thread-safely
                 with self._state_lock:
                     self._is_connected = True
                 self.logger.info("[TCP_Receiver] Connection established successfully.")
 
-                # --- Phase 2: Receive Data ---
                 self._receive_data_loop()
 
             except (socket.timeout, socket.error) as e:
                 self.logger.error(f"[TCP_Receiver] A connection or communication error occurred: {e}. Will retry...")
-            except Exception as e:
-                self.logger.error(f"[TCP_Receiver] An unexpected error occurred in the worker loop: {e}", exc_info=True)
             finally:
-                # --- Phase 3: Cleanup ---
-                # Ensure connection resources are cleaned up regardless of what happened
                 self._cleanup_connection()
             
-            # --- Phase 4: Wait before Reconnecting ---
             if not self._stop_event.is_set():
-                self.logger.info(f"[TCP_Receiver] Waiting {self.RECONNECT_DELAY} seconds before reconnecting.")
-                # wait() is used instead of time.sleep() so it can be interrupted by the stop_event
                 self._stop_event.wait(self.RECONNECT_DELAY)
         
         self.logger.info("[TCP_Receiver] Worker loop has terminated.")
@@ -172,104 +182,133 @@ class TCP_Receiver:
     def _receive_data_loop(self):
         """
         Continuously receives and processes data on an established connection.
-        This loop will exit if the connection is lost.
         """
         buffer = b''
         while not self._stop_event.is_set():
             try:
-                # The recv() call is blocking, so it must be outside the lock
                 with self._socket_lock:
-                    if not self._client_socket:
-                        break  # Socket was closed by another thread (e.g., stop())
-                    
-                    # Read only the bytes needed to complete the next packet
+                    if not self._client_socket: break
                     read_size = self.PACKET_SIZE - len(buffer)
                     data = self._client_socket.recv(read_size)
 
                 if not data:
-                    # An empty byte string from recv() means the peer has closed the connection gracefully
                     self.logger.warning("[TCP_Receiver] Connection closed by the peer.")
-                    break  # Exit the receive loop to trigger reconnection logic
+                    break
 
                 buffer += data
 
                 if len(buffer) >= self.PACKET_SIZE:
-                    # Process one full packet and keep the rest of the buffer
                     packet = buffer[:self.PACKET_SIZE]
                     buffer = buffer[self.PACKET_SIZE:]
                     self._process_packet(packet)
                     with self._state_lock:
                         self._is_receiving = True
 
-            except socket.timeout:
-                 self.logger.warning("[TCP_Receiver] Socket recv() timed out. No data received in the timeout period.")
-                 continue # Continue waiting for data
             except socket.error as e:
-                # Any other socket error (e.g., connection reset) indicates a broken connection
                 self.logger.error(f"[TCP_Receiver] Socket error during data reception: {e}")
-                break # Exit the receive loop to trigger reconnection
+                break
 
     def _process_packet(self, packet: bytes):
-        """Parses a 64-byte packet into 16 channel voltage values and appends them to the queues."""
+        """Parses a 66-byte packet and appends the data to the respective queues."""
         try:
+            # --- 1. Process first 48 bytes for EMG data ---
             voltages = []
             for i in range(self.num_channels):
                 offset = i * 3
-                # Unpack 3 bytes into a 24-bit unsigned integer (big-endian)
                 bytes_24 = packet[offset:offset+3]
                 uint24_val = int.from_bytes(bytes_24, 'big', signed=False)
                 voltages.append(self._extract_voltage(uint24_val))
             
             for i in range(self.num_channels):
-                self.data_queues[i].append(voltages[i])
-        except Exception as e:
-            self.logger.error(f"[TCP_Receiver] Failed to process packet: {e}")
+                self.emg_data_queues[i].append(voltages[i])
+            
+            # --- 2. Process GPS Data (bytes 48-58) if valid ---
+            if packet[48] == 0x59:
+                lat_val_raw = struct.unpack('>f', packet[49:53])[0]
+                lon_val_raw = struct.unpack('>f', packet[54:58])[0]
 
+                latitude,longitude = self._Parse_GPS(lat_raw =lat_val_raw,lon_raw=lon_val_raw)
+                lat_dir = ' '
+                lon_dir = ' '
+
+                if packet[53:54] in {b'N', b'S'}:
+                    lat_dir = packet[53:54].decode('ascii')
+
+                if packet[58:59] in {b'E', b'W'}:
+                    lon_dir = packet[58:59].decode('ascii')
+                
+                self.gps_data['latitude'].append(str(latitude)+"°"+lat_dir)
+                self.gps_data['longitude'].append(str(longitude)+"°"+lon_dir)
+            
+            # --- 3. Process Gyroscope Data (bytes 59-65) if valid ---
+            if packet[59] == 0x59:
+                roll_raw = int.from_bytes(packet[60:62], 'little', signed=True)
+                pitch_raw = int.from_bytes(packet[62:64], 'little', signed=True)
+                yaw_raw = int.from_bytes(packet[64:66], 'little', signed=True)
+
+                roll = roll_raw / 32768.0 * 180.0
+                pitch = pitch_raw / 32768.0 * 180.0
+                yaw = yaw_raw / 32768.0 * 180.0
+
+                self.gyro_data['roll'].append(roll)
+                self.gyro_data['pitch'].append(pitch)
+                self.gyro_data['yaw'].append(yaw)
+
+        except Exception as e:
+            self.logger.error(f"[TCP_Receiver] Failed to process packet: {e}", exc_info=True)
+
+    def _Parse_GPS(self, lat_raw,lon_raw):
+        
+        def to_decimal(raw_data):
+            degrees = raw_data // 100
+            minutes = raw_data % 100
+            decimal_degrees = degrees + (minutes / 60.0)
+            return decimal_degrees
+        lat = to_decimal(lat_raw)
+        lon = to_decimal(lon_raw)
+        return lat,lon
+        
     def _extract_voltage(self, uint24_value: int) -> float:
         """Converts a 24-bit raw value to a voltage value in millivolts (mV)."""
-        if uint24_value & (1 << 23):  # Check if the sign bit (24th bit) is set
+        if uint24_value & (1 << 23):
             raw_value = uint24_value - (1 << 24)
         else:
             raw_value = uint24_value
-        
-        return raw_value * self.LSB * 1000  # Convert to millivolts
+        return raw_value * self.LSB * 1000
 
     def _cleanup_connection(self):
         """Safely closes the current socket and resets the status flags."""
         with self._socket_lock:
             if self._client_socket:
-                try:
-                    self._client_socket.close()
-                except Exception as e:
-                    self.logger.warning(f"[TCP_Receiver] An error occurred while closing the socket: {e}")
-                finally:
-                    self._client_socket = None
-        
+                try: self._client_socket.close()
+                except Exception: pass
+                finally: self._client_socket = None
         with self._state_lock:
             self._is_connected = False
             self._is_receiving = False
         self.logger.info("[TCP_Receiver] Connection resources have been cleaned up.")
 
     def is_connected(self) -> bool:
-        """
-        Checks if the client is currently connected to the server.
-        
-        Returns:
-            bool: True if connected, False otherwise.
-        """
+        """Checks if the client is currently connected to the server."""
         with self._state_lock:
             return self._is_connected
 
     def get_data(self) -> List[Deque[float]]:
-        """
-        Returns a shallow copy of all channel data queues.
-
-        Returning a copy prevents potential issues if the queues are modified
-        by the background thread while iterating over them.
-        
-        Returns:
-            list[deque]: A list where each element is a deque containing
-                         the data for one channel.
-        """
-        return [q.copy() for q in self.data_queues]
+        """Returns a shallow copy of all channel EMG data queues (for backward compatibility)."""
+        return self.get_emg_data()
     
+    def get_emg_data(self) -> List[Deque[float]]:
+        """Returns a shallow copy of all channel EMG data queues."""
+        with self._state_lock:
+            return [q.copy() for q in self.emg_data_queues]
+    
+    def get_gps_data(self) -> Dict[str, Deque[float]]:
+        """Returns a shallow copy of the GPS data queues."""
+        with self._state_lock:
+            return {key: q.copy() for key, q in self.gps_data.items()}
+
+    def get_gyro_data(self) -> Dict[str, Deque[float]]:
+        """Returns a shallow copy of the Gyroscope data queues."""
+        with self._state_lock:
+            return {key: q.copy() for key, q in self.gyro_data.items()}
+        

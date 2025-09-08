@@ -31,12 +31,7 @@ async def main():
                 print("mqtt_uri:", controller.mqtt_uri)
                 print("mqtt_port:", controller.mqtt_port)
                 print("Gain:", controller.gain)
-               
-                pose_data = controller.pose_GetData() # Pose data will not be received until the TCP connection is established.
-                if pose_data is not None:
-                    print(f"accelerometer:({pose_data[0][99]},{pose_data[1][99]},{pose_data[2][99]})")
-                    print(f"thermometer:{pose_data[3][99]}")
-                    print(f"gyroscope:({pose_data[4][99]},{pose_data[5][99]},{pose_data[6][99]})")
+                
                 await asyncio.sleep(1)
             
     except Exception as e:

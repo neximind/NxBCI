@@ -22,8 +22,7 @@ A controller for managing Bluetooth Low Energy (BLE) device connections and data
 1.  [Overview & Quick Start](#overview--quick-start)
 2.  [Connection Management](#connection-management)
 3.  [Device Information](#device-information)
-4.  [Pose & Temperature Data](#pose--temperature-data)
-5.  [Device Configuration](#device-configuration)
+4.  [Device Configuration](#device-configuration)
 
 ---
 
@@ -63,28 +62,6 @@ async def main():
             # Get battery level
             battery = controller.bt_GetBatteryLevel()
             print(f"Battery Level: {battery}%")
-
-            # Configure the pose data sample rate (how many data points to buffer)
-            controller.pose_Config(Sample_rate=50) # Buffer 50 samples
-
-            # Loop to get data
-            for _ in range(10): # Example: loop 10 times
-                # Get the latest pose data
-                # Bluetooth will receive data from the device only when the TCP_Receiver is receiving data.
-                pose_data = controller.pose_GetData() 
-                if pose_data:
-                    # pose_data is a list of 7 deques for
-                    # Accel(X,Y,Z), Temp, Gyro(X,Y,Z)
-                    # Print the latest data point (index -1)
-                    print(f"Accelerometer: (X:{pose_data[0][-1]:.2f},
-                                            Y:{pose_data[1][-1]:.2f}, 
-                                            Z:{pose_data[2][-1]:.2f})")
-                    print(f"Temperature: {pose_data[3][-1]:.2f}°C")
-                    print(f"Gyroscope: (X:{pose_data[4][-1]:.2f},
-                                            Y:{pose_data[5][-1]:.2f}, 
-                                            Z:{pose_data[6][-1]:.2f})")
-                await asyncio.sleep(1)
-
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
@@ -149,29 +126,6 @@ Gets the device's main data acquisition sample rate.
 
 ---
 
-## Pose & Temperature Data
-
-Interfaces for configuring and retrieving pose and temperature data from the MPU sensor.
-
-### `def pose_Config(self, Sample_rate: int)`
-Sets the internal sample rate and buffer size for pose and temperature data. This determines the length of the deques returned by `pose_GetData`.
-*   **Parameters**:
-    *   `Sample_rate` (`int`): The desired number of samples to buffer. The valid range is (0, 100].
-
-### `def pose_GetData(self) -> Optional[List[deque]]`
-Retrieves the buffered list of latest pose and temperature data.
-*   **Returns**: `Optional[List[deque]]` - A list of 7 `deque` objects. Returns `None` if the Bluetooth is not connected or the buffer is not yet full.
-    *   **Deque Order**:
-        1.  `deque[0]`: X-axis acceleration (g)
-        2.  `deque[1]`: Y-axis acceleration (g)
-        3.  `deque[2]`: Z-axis acceleration (g)
-        4.  `deque[3]`: Temperature (°C)
-        5.  `deque[4]`: X-axis angular velocity (°)
-        6.  `deque[5]`: Y-axis angular velocity (°)
-        7.  `deque[6]`: Z-axis angular velocity (°)
-
----
-
 ## Device Configuration
 
 Asynchronous methods for writing new configurations to the device.
@@ -229,38 +183,46 @@ import logging
 import time
 from NxBCI.MQTT_Receiver import MQTT_Receiver
 
-# Configure logging to see status messages from the receiver
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+# Configure logging in your main script
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# 1. Initialize the receiver (this does not connect yet)
-receiver = MQTT_Receiver(Ip="MQTT broker IP", port=1883, topic="esp32-pub-message")
+# Initialize the receiver
+receiver = MQTT_Receiver(Ip="your MQTT broker IP", port=1883, topic="esp32-pub-message")
 
-# 2. Start the connection and background network loop
+# Start the background worker thread
 receiver.start()
 
 try:
     while True:
         time.sleep(2)
-        # 3. Safely check the connection status
         if receiver.is_connected():
-            # 4. Safely get a copy of the latest EEG data
-            data = receiver.get_data()
-            if data and data:
-                print(f"MQTT Connected. Last value on Ch0: {list(data)[-1]:.4f} mV")
+            print("\n--- Connection is ON ---")
+            # Safely get a copy of the data queues
+            emg_data = receiver.get_emg_data()
+            gps_data = receiver.get_gps_data()
+            gyro_data = receiver.get_gyro_data()
+
+            print(f"Queue lengths: EMG={len(emg_data[0]) if emg_data else 0}, GPS={len(gps_data['latitude']) if gps_data else 0}, Gyro={len(gyro_data['roll']) if gyro_data else 0}")
+
+            if gps_data and gps_data['latitude']:
+                print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
             else:
-                print("MQTT Connected, but no data received yet.")
+                print("No valid GPS data received yet.")
+
+            if gyro_data and gyro_data['roll']:
+                print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
+            else:
+                print("No valid GYRO data received yet.")
         else:
-            # The Paho-MQTT client handles reconnections automatically
-            print("MQTT Disconnected. Waiting for automatic reconnect...")
+            print("Connection is OFF. Waiting for the receiver to reconnect...")
 
 except KeyboardInterrupt:
     print("Program interrupted by user.")
 finally:
-    # 5. Stop the client and disconnect cleanly
-    print("Stopping MQTT receiver...")
+    print("Stopping receiver service...")
+    # Ensure the thread and resources are cleaned up on exit
     receiver.stop()
-    print("Receiver stopped.")
+    print("Receiver service stopped.")
 ```
 ---
 
@@ -299,18 +261,13 @@ Checks if the client is currently connected to the MQTT broker.
 Returns a shallow copy of all channel data queues. Returning a copy prevents potential thread-safety issues if your application iterates over the data while the network thread is simultaneously modifying it.
 *   **Returns**: `List[Deque[float]]` - A list of deques. Each deque contains the buffered data for a single channel, converted to millivolts (mV).
 
-### `def pose_GetData(self) -> Optional[List[deque]]`
-Retrieves the buffered list of latest pose and temperature data.
-*   **Returns**: `Optional[List[deque]]` - A list of 7 `deque` objects. Returns `None` if the MQTT connection is not connected or the mpu buffer is empty .
-    *   **Deque Order**:
-        1.  `deque[0]`: X-axis acceleration (g)
-        2.  `deque[1]`: Y-axis acceleration (g)
-        3.  `deque[2]`: Z-axis acceleration (g)
-        4.  `deque[3]`: Temperature (°C)
-        5.  `deque[4]`: X-axis angular velocity (°)
-        6.  `deque[5]`: Y-axis angular velocity (°)
-        7.  `deque[6]`: Z-axis angular velocity (°)
+### `get_gps_data(self) -> Dict[str, Deque[str]]`
+    Returns a copy of the GPS data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.Includes the latest GPS longitude and latitude data.
 
+### `get_gyro_data(self) -> Dict[str, Deque[float]]`
+    Returns a copy of the playback Gyroscope data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.The data includes the gyroscope, which consists of roll angle, pitch angle, and yaw angle. (Degrees)
 ---
 ---
 
@@ -453,15 +410,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Use 'with' to ensure the file is closed automatically
 with Replay(FilePath='YOUR_DATA.BIN', sample_rate=500) as replayer:
-    # Start the background playback thread
-    replayer.start_playback()
-
-    for _ in range(5):
-        time.sleep(1)
-        # Get the current playback buffer (last ~4 seconds of data)
-        data_buffer = replayer.get_data()
-        if data_buffer and data_buffer:
-            print(f"Playback is running. Buffer for Ch0 has {len(data_buffer)} samples.")
+            replayer.start() # or replayer.start_playback()
+            time.sleep(5)
+            emg_data = replayer.get_data()
+            gps_data = replayer.get_gps_data()
+            print(f"EMG Queue 0 has {len(emg_data[0])} points. Latest GPS: {list(gps_data['latitude'])[-1]}")
+            replayer.stop()
             
 with Replay(FilePath='YOUR_DATA.BIN') as replayer:
     # Load the entire file into memory (this is a blocking call)
@@ -550,17 +504,14 @@ Loads the entire file into an in-memory cache. This is a blocking, one-time oper
 ### `get_total_samples(self) -> int`
 **For Load Mode.** Returns the total number of samples detected in the file. Requires `load_all_data()` to have been called.
 
-### `def pose_GetData(self) -> Optional[List[deque]]`
-Retrieves the buffered list of latest pose and temperature data.
-*   **Returns**: `Optional[List[deque]]` - A list of 7 `deque` objects. Returns `None` if the playback thread is not running or the MPU buffer is empty .
-    *   **Deque Order**:
-        1.  `deque[0]`: X-axis acceleration (g)
-        2.  `deque[1]`: Y-axis acceleration (g)
-        3.  `deque[2]`: Z-axis acceleration (g)
-        4.  `deque[3]`: Temperature (°C)
-        5.  `deque[4]`: X-axis angular velocity (°)
-        6.  `deque[5]`: Y-axis angular velocity (°)
-        7.  `deque[6]`: Z-axis angular velocity (°)
+### `get_gps_data(self) -> Dict[str, Deque[str]]`
+    Returns a copy of the GPS data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.Includes the latest GPS longitude and latitude data.
+
+### `get_gyro_data(self) -> Dict[str, Deque[float]]`
+    Returns a copy of the playback Gyroscope data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.The data includes the gyroscope, which consists of roll angle, pitch angle, and yaw angle. (Degrees)
+
 ---
 
 ## Status Checks
@@ -594,35 +545,44 @@ import logging
 import time
 from NxBCI.TCP_Receiver import TCP_Receiver
 
-# It's recommended to configure logging in your main script
+# Configure logging in your main script
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# 1. Initialize the receiver with target IP and parameters
+# Initialize the receiver
 receiver = TCP_Receiver(channels=16, sample_rate=500, Ip="192.168.4.1", port=8080)
 
-# 2. Start the background worker thread
+# Start the background worker thread
 receiver.start()
 
 try:
     while True:
         time.sleep(2)
-        # 3. Safely check the connection status
         if receiver.is_connected():
-            # 4. Safely get a copy of the latest data
-            latest_data_queues = receiver.get_data()
-            if latest_data_queues and latest_data_queues:
-                # Access the latest value from the first channel's queue
-                print(f"Connection is ON. Channel 0 latest value: {list(latest_data_queues)[-1]}")
+            print("\n--- Connection is ON ---")
+            # Safely get a copy of the data queues
+            emg_data = receiver.get_emg_data()
+            gps_data = receiver.get_gps_data()
+            gyro_data = receiver.get_gyro_data()
+
+            print(f"Queue lengths: EMG={len(emg_data[0]) if emg_data else 0}, GPS={len(gps_data['latitude']) if gps_data else 0}, Gyro={len(gyro_data['roll']) if gyro_data else 0}")
+
+            if gps_data and gps_data['latitude']:
+                print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
             else:
-                print("Connection is ON, but no data has been received yet.")
+                print("No valid GPS data received yet.")
+
+            if gyro_data and gyro_data['roll']:
+                print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
+            else:
+                print("No valid GYRO data received yet.")
         else:
             print("Connection is OFF. Waiting for the receiver to reconnect...")
 
 except KeyboardInterrupt:
     print("Program interrupted by user.")
 finally:
-    # 5. Stop the receiver to clean up resources
     print("Stopping receiver service...")
+    # Ensure the thread and resources are cleaned up on exit
     receiver.stop()
     print("Receiver service stopped.")
 ```
@@ -663,3 +623,10 @@ Checks if the client is currently connected to the server.
 Returns a shallow copy of all channel data queues. 
 
 *   **Returns**: `List[Deque[float]]` - A list of deques. Each deque contains the buffered data for a single channel, converted to millivolts (mV).
+
+### `get_gps_data(self) -> Dict[str, Deque[str]]`
+    Returns a copy of the GPS data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.Includes the latest GPS longitude and latitude data.
+### `get_gyro_data(self) -> Dict[str, Deque[float]]`
+    Returns a copy of the playback Gyroscope data deques.
+*   **Returns**: `List[Deque[float]]` - A list of deques.The data includes the gyroscope, which consists of roll angle, pitch angle, and yaw angle. (Degrees)

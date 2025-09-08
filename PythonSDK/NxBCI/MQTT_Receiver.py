@@ -5,7 +5,7 @@ import time
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 from collections import deque
-from typing import List, Deque, Optional
+from typing import List, Deque,Dict ,Optional
 
 class MQTT_Receiver:
     """
@@ -17,33 +17,46 @@ class MQTT_Receiver:
 
     Example Usage:
         
+        # Configure logging in your main script
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-        # Initialize the receiver (does not connect yet)
-        receiver = MQTT_Receiver(Ip="127.0.0.1", port=1883, topic="esp32-pub-message")
-        
-        # Start the connection and background network loop
+        # Initialize the receiver
+        receiver = MQTT_Receiver(Ip="192.168.176.254", port=1883, topic="esp32-pub-message")
+
+        # Start the background worker thread
         receiver.start()
 
         try:
             while True:
                 time.sleep(2)
                 if receiver.is_connected():
-                    # Safely get a copy of the data
-                    data = receiver.get_data()
-                    if data and data[0]:
-                        print(f"MQTT Connected. Last value on Ch0: {list(data[0])[-1]}")
+                    print("\n--- Connection is ON ---")
+                    # Safely get a copy of the data queues
+                    emg_data = receiver.get_emg_data()
+                    gps_data = receiver.get_gps_data()
+                    gyro_data = receiver.get_gyro_data()
+
+                    print(f"Queue lengths: EMG={len(emg_data[0]) if emg_data else 0}, GPS={len(gps_data['latitude']) if gps_data else 0}, Gyro={len(gyro_data['roll']) if gyro_data else 0}")
+
+                    if gps_data and gps_data['latitude']:
+                        print(f"Latest GPS Data: Latitude={list(gps_data['latitude'])[-1]}, Longitude={list(gps_data['longitude'])[-1]}")
                     else:
-                        print("MQTT Connected, but no data received yet.")
+                        print("No valid GPS data received yet.")
+
+                    if gyro_data and gyro_data['roll']:
+                        print(f"Latest GYRO Data: Roll={list(gyro_data['roll'])[-1]}°, Pitch={list(gyro_data['pitch'])[-1]}°,Yaw={list(gyro_data['yaw'])[-1]}°")
+                    else:
+                        print("No valid GYRO data received yet.")
                 else:
-                    print("MQTT Disconnected. Paho-MQTT will attempt to reconnect automatically.")
+                    print("Connection is OFF. Waiting for the receiver to reconnect...")
 
         except KeyboardInterrupt:
-            print("Program interrupted.")
+            print("Program interrupted by user.")
         finally:
-            print("Stopping MQTT receiver...")
+            print("Stopping receiver service...")
+            # Ensure the thread and resources are cleaned up on exit
             receiver.stop()
-            print("Receiver stopped.")
+            print("Receiver service stopped.")
     """
 
     # Voltage conversion constants
@@ -71,8 +84,20 @@ class MQTT_Receiver:
         # Data storage and configuration
         self.data_queues: List[Deque[float]] = [deque(maxlen=sample_rate * duration) for _ in range(channels)]
         self.num_channels = channels
-        self.mpu_data_queues: List[Deque[float]] = [deque(maxlen=100) for _ in range(7)]
+
+        # GPS data storage
         
+        self.gps_data: Dict[str, Deque[str]] = {
+            'latitude': deque(maxlen=10),
+            'longitude': deque(maxlen=10)
+        }
+        
+        # Gyroscope data storage
+        self.gyro_data: Dict[str, Deque[float]] = {
+            'roll': deque(maxlen=2000),
+            'pitch': deque(maxlen=2000),
+            'yaw': deque(maxlen=2000)
+        }
         # MQTT configuration
         self._broker_address = Ip
         self._broker_port = port
@@ -169,9 +194,9 @@ class MQTT_Receiver:
             return
 
         payload = msg.payload
-        if len(payload) != 48 and len(payload) != 62:
+        if len(payload) != 66:
             self.logger.warning(f"[MQTT_Receiver]  Received message with invalid payload length. "
-                              f"Expected {48} or {62}, got {len(payload)}.")
+                              f"Expected {66}, got {len(payload)}.")
             with self._state_lock:
                 self._is_receiving = False
             return
@@ -180,6 +205,7 @@ class MQTT_Receiver:
             self._is_receiving = True
 
         try:
+            # --- 1. Process first 48 bytes for EMG data ---
             voltages = []
             for i in range(self.num_channels):
                 offset = i * 3
@@ -191,26 +217,51 @@ class MQTT_Receiver:
             # deque.append is atomic, so it's safe to call from the callback thread.
             for i in range(self.num_channels):
                 self.data_queues[i].append(voltages[i])
+            # --- 2. Process GPS Data (bytes 48-58) if valid ---
+            if payload[48] == 0x59:
+                lat_val_raw = struct.unpack('>f', payload[49:53])[0]
+                lon_val_raw = struct.unpack('>f', payload[54:58])[0]
 
-            if len(payload) == 62:
-                mpu_bytes = struct.unpack(">7h",payload[48:62])
-                mpu6500data = [
-                    mpu_bytes[0]*self.ACCE_LSB,
-                    mpu_bytes[1]*self.ACCE_LSB,
-                    mpu_bytes[2]*self.ACCE_LSB,
-                    (mpu_bytes[3] / 333.87) + 21,
-                    mpu_bytes[4]*self.GYPO_LSB,
-                    mpu_bytes[5]*self.GYPO_LSB,
-                    mpu_bytes[6]*self.GYPO_LSB
-                ]
+                latitude,longitude = self._Parse_GPS(lat_raw =lat_val_raw,lon_raw=lon_val_raw)
+                lat_dir = ' '
+                lon_dir = ' '
+
+                if payload[53:54] in {b'N', b'S'}:
+                    lat_dir = payload[53:54].decode('ascii')
+
+                if payload[58:59] in {b'E', b'W'}:
+                    lon_dir = payload[58:59].decode('ascii')
                 
-                for i in range(7):
-                    self.mpu_data_queues[i].append(mpu6500data[i])
-                    
+                self.gps_data['latitude'].append(str(latitude)+"°"+lat_dir)
+                self.gps_data['longitude'].append(str(longitude)+"°"+lon_dir)
+
+            # --- 3. Process Gyroscope Data (bytes 59-65) if valid ---
+            if payload[59] == 0x59:
+                roll_raw = int.from_bytes(payload[60:62], 'little', signed=True)
+                pitch_raw = int.from_bytes(payload[62:64], 'little', signed=True)
+                yaw_raw = int.from_bytes(payload[64:66], 'little', signed=True)
+
+                roll = roll_raw / 32768.0 * 180.0
+                pitch = pitch_raw / 32768.0 * 180.0
+                yaw = yaw_raw / 32768.0 * 180.0
+
+                self.gyro_data['roll'].append(roll)
+                self.gyro_data['pitch'].append(pitch)
+                self.gyro_data['yaw'].append(yaw)
 
         except Exception as e:
             self.logger.error(f"[MQTT_Receiver] Error processing message payload: {e}", exc_info=True)
 
+    def _Parse_GPS(self, lat_raw,lon_raw):
+        
+        def to_decimal(raw_data):
+            degrees = raw_data // 100
+            minutes = raw_data % 100
+            decimal_degrees = degrees + (minutes / 60.0)
+            return decimal_degrees
+        lat = to_decimal(lat_raw)
+        lon = to_decimal(lon_raw)
+        return lat,lon
     # --- Public API Methods ---
 
     def is_connected(self) -> bool:
@@ -223,41 +274,32 @@ class MQTT_Receiver:
         with self._state_lock:
             return self._is_connected
 
-    def get_data(self) -> List[Deque[float]]:
-        """
-        Returns a shallow copy of all channel data queues.
-
-        Returning a copy prevents potential race conditions if the main thread
-        iterates over the queues while the network thread is modifying them.
-        
-        Returns:
-            list[deque]: A list where each element is a deque containing
-                         the data for one channel.
-        """
-        # deque.copy() is an atomic and thread-safe operation.
-        return [q.copy() for q in self.data_queues]
-    
     def pose_GetData(self):
         """
-        Retrieves the latest pose and temperature information
-        Returns:
-            A "deque" containing:
-            
-            - X_a  : Acceleration along the x-axis.
-            - Y_a  : Acceleration along the y-axis.
-            - Z_a  : Acceleration along the z-axis.
-            - T    : Temperature in degrees Celsius.
-            - ω_x  : Angular velocity along the x-axis.
-            - ω_y  : Angular velocity along the y-axis.
-            - ω_z  : Angular velocity along the z-axis.
+        [Deprecated] Retrieves the latest pose data.
+        NOTE: The current 66-byte packet format does not populate this data.
+        This method is preserved for API compatibility and will return None.
         """
-        if not self.is_connected():
-            self.logger.error("[MQTT_Receiver] The playback thread is not running")
-            return None
-
-
-        if not self.mpu_data_queues or not self.mpu_data_queues[0]:
-            self.logger.error("[MQTT_Receiver] The MPU buffer is empty.")
-            return None
+        self.logger.error(f"[MQTT_Receiver] pose_GetData() is deprecated and not supported in the current packet format.")
         
-        return [q.copy() for q in self.mpu_data_queues]
+        return None
+    
+    def get_data(self) -> List[Deque[float]]:
+        """Returns a shallow copy of all channel EMG data queues (for backward compatibility)."""
+        return self.get_emg_data()
+    
+    def get_emg_data(self) -> List[Deque[float]]:
+        """Returns a shallow copy of all channel EMG data queues."""
+        with self._state_lock:
+            return [q.copy() for q in self.data_queues]
+    
+    def get_gps_data(self) -> Dict[str, Deque[float]]:
+        """Returns a shallow copy of the GPS data queues."""
+        with self._state_lock:
+            return {key: q.copy() for key, q in self.gps_data.items()}
+
+    def get_gyro_data(self) -> Dict[str, Deque[float]]:
+        """Returns a shallow copy of the Gyroscope data queues."""
+        with self._state_lock:
+            return {key: q.copy() for key, q in self.gyro_data.items()}
+        

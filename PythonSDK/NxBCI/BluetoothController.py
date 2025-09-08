@@ -45,11 +45,6 @@ class BluetoothController:
                         print("mqtt_uri:", controller.mqtt_uri)
                         print("mqtt_port:", controller.mqtt_port)
                         print("Gain:", controller.gain)
-                        pose_data = controller.pose_GetData()
-                        if pose_data is not None:
-                            print(f"accelerometer:({pose_data[0][99]},{pose_data[1][99]},{pose_data[2][99]})")
-                            print(f"thermometer:{pose_data[3][99]}")
-                            print(f"gyroscope:({pose_data[4][99]},{pose_data[5][99]},{pose_data[6][99]})")
                         await asyncio.sleep(1)
                     
             except Exception as e:
@@ -463,44 +458,19 @@ class BluetoothController:
 
     def pose_Config(self,Sample_rate):
         """
-        Set the sampling rate for pose and temperature
-        Parameters:
-            Sample_rate (float): The sampling rate for pose and temperature
+        [Deprecated] Configure the sample rate for pose data retrieval.
+        NOTE: The current 66-byte packet format does not populate this data.
         """
-    
-        if Sample_rate > 100 or Sample_rate < 0:
-            logger.error(f"[Bluetooth] Please enter a sample rate range in: ({0},{100})")
-            return
-        
-        if self.mpu_sample_rate != Sample_rate:
-            self.mpu_sample_rate = Sample_rate
-            self.mpu_data_queues = [deque(maxlen=self.mpu_sample_rate) for _ in range(7)]
+        logger.error(f"[Bluetooth] pose_Config() is deprecated and not supported in the current packet format.")
     
     def pose_GetData(self):
         """
-        Retrieves the latest pose and temperature information. Tips:Bluetooth will receive data from the device only when the TCP_Receiver is receiving data.
-        Returns:
-            A "deque" containing:
-            
-            - X_a  : Acceleration along the x-axis.
-            - Y_a  : Acceleration along the y-axis.
-            - Z_a  : Acceleration along the z-axis.
-            - T    : Temperature in degrees Celsius.
-            - ω_x  : Angular velocity along the x-axis.
-            - ω_y  : Angular velocity along the y-axis.
-            - ω_z  : Angular velocity along the z-axis.
+        [Deprecated] Retrieves the latest pose data.
+        NOTE: The current 66-byte packet format does not populate this data.
+        This method is preserved for API compatibility and will return None.
         """
-        if not self.getState():
-            logger.error("[Bluetooth] The bluetooth connection is not established")
-            return
-
-        sampleNum = self.mpu_sample_rate
-
-        if sampleNum > len(self.mpu_data_queues[0]):
-            logger.error("[Bluetooth] The MPU buffer is not filled")
-            return
-
-        return self.mpu_data_queues
+        logger.error(f"[Bluetooth] pose_GetData() is deprecated and not supported in the current packet format.")
+        return None
 
     
     def getState(self):
@@ -737,7 +707,6 @@ class BluetoothController:
     
         SUPPORTED_RATES = (500, 1000, 2000, 4000)
         
-        # 参数验证
         if sampleRate not in SUPPORTED_RATES:
             error_msg = f"Invalid sample rate {sampleRate}Hz. Supported rates: {SUPPORTED_RATES}"
             logger.error(f"[Bluetooth] {error_msg}")

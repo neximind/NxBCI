@@ -12,7 +12,7 @@ from NxBCI.MQTT_Receiver import MQTT_Receiver
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-BROKER_IP = "192.168.177.205"
+BROKER_IP = "192.168.176.254"
 BROKER_PORT = 1883
 TOPIC = "esp32-pub-message"
 CHANNELS = 16
