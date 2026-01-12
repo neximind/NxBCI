@@ -13,11 +13,11 @@ from NxBCI.TCP_Receiver import TCP_Receiver
 Tips: Please ensure you are connected to the Wi-Fi of the EEG/EMG device before establishing a TCP connection.
 """
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-receiver = TCP_Receiver(channels=16, sample_rate=4000, Ip="192.168.4.1", port=8080)
+receiver = TCP_Receiver(channels=16, sample_rate=1000, Ip="192.168.4.1", port=8080)
 receiver.start()
 
 CHANNELS = 16
-MAX_POINTS = 4000*4
+MAX_POINTS = 1000*4
 OFFSET = 200
 
 plt.ion() 

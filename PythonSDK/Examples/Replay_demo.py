@@ -12,8 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-filepath = os.path.join(os.getcwd(), "PythonSDK/Examples", "EMGDATA_500Hz_mixdata.bin")
+filepath = os.path.join(current_dir, "EMGDATA_500Hz_mixdata.bin")
 
 try:
     with Replay(FilePath=filepath, sample_rate=500,isLoop=True) as replay:
