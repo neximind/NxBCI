@@ -1,64 +1,96 @@
-# NxBCI
-This interface module is designed for customers who have purchased our equipment. It enables seamless data acquisition from the devices and provides control over operational parameters and device status monitoring.
+# NxBCI Python SDK
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
+[![Lang: Zh](https://img.shields.io/badge/语言-中文-red.svg)](README_zh.md)
+
+The **NxBCI** SDK enables developers to communicate with Neximind acquisition devices. This guide focuses on setting up the development environment and running demos on **Windows** and **macOS**.
 
 ---
 
-## 🚀 Getting Started
-
-This guide will help you successfully install and run NxBCI on your local machine for development and testing.
-
-### Prerequisites
-
-For Python environment and dependency management, we recommend [Anaconda](https://www.anaconda.com/download).
+### 🌐 [中文说明 (Chinese Documentation)](README_zh.md)
 
 ---
 
-## ⚙️ Installation
+## 💻 System Requirements
 
-Please follow these steps to set up your local development environment.
+* **Operating System**: Windows 10/11 or macOS (10.15+).
+* **Python Version**: Python 3.9 or newer.
+* **Hardware Interface**: USB Serial Port or Bluetooth Adapter.
+
+## 🛠️ Environment Setup
+
+You can set up the environment using either **Conda** (recommended for isolation) or standard **Pip** (venv).
 
 ### 1. Clone the Repository
 
-First, clone this repository to your local computer:
-
 ```bash
-git clone https://github.com/neximind/NxBCI.git
-cd NxBCI/PythonSDK/NxBCI
+git clone [https://github.com/neximind/NxBCI.git](https://github.com/neximind/NxBCI.git)
+cd NxBCI
 ```
-### 2. Create and Activate the Conda Environment
 
-Use the `environment.yml` file to create and activate your Conda environment.
+### 2. Install Dependencies
+
+#### Option A: Using Conda (Cross-Platform)
+
+If you have `environment.yml`:
 
 ```bash
-# 根据 yml 文件创建环境
 conda env create -f environment.yml
-
-# 激活新创建的环境
 conda activate NxBCI
 ```
-### 3. Install Additional Dependencies
-Please use pip to install the additional dependencies included in the `requirements.txt` file.
-```bash
-pip install -r requirements.txt
-```
-### 4. Install NxBCI
-Install NxBCI into your project in editable mode.
+
+#### Option B: Using Standard Pip (venv)
+
+1. **Create a virtual environment:**
+
+   ```bash
+   # Windows
+   python -m venv venv
+   .\venv\Scripts\activate
+
+   # macOS / Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+2. **Install requirements:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### 3. Install the SDK Package
+
+Install the SDK in editable mode to allow for development:
+
 ```bash
 pip install -e .
 ```
-## ▶️ Usage
 
+## ▶️ Running Demos
 
-You can run demos of various NxBCI features within the `Examples` folder. For instance, see how to replay scripts saved by the acquisition device to a file:
+Once the environment is ready, you can verify the installation by running the examples.
+
+### Example: Replay Demo
+This script simulates data acquisition by replaying a recorded file.
+
 ```bash
 python Examples/Replay_demo.py
 ```
-## 🤝 Contributing
 
-We welcome contributions of all kinds! You can help us improve this project by submitting Pull Requests or reporting Issues.
+### Example: Hardware Acquisition
+To run with a device, check your serial port name first(You can run the "list_port.py" to list all serial ports):
+* **Windows**: `COM3`, `COM4`, etc.
+* **macOS**: `/dev/tty.usbserial-XXXX` or `/dev/tty.usbmodemXXXX`.
 
----
+Update the port in "Examples/MultiSerial_Ports_Demo.py" script accordingly.
+
+## 🔧 Troubleshooting
+
+* **Permission Denied (macOS)**: If you cannot open the serial port, you may need to install the CH340/CP210x driver or run the script with necessary permissions.
+* **Module Not Found**: Ensure you have activated your virtual environment (`conda activate NxBCI` or `source venv/bin/activate`) before running scripts.
 
 ## 📄 License
 
-This project is licensed under th [MIT](LICENSE) License.
+This project is licensed under the [MIT License](LICENSE).
