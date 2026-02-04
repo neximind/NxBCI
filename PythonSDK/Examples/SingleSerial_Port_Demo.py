@@ -11,7 +11,7 @@ import logging
 from NxBCI.Serial_Receiver import Serial_Receiver
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-receiver = Serial_Receiver(port='COM3')
+receiver = Serial_Receiver(port='COM3') #change to your port
 receiver.open()
 
 CHANNELS = 16
