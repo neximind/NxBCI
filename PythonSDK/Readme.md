@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
-[![Lang: Zh](https://img.shields.io/badge/语言-中文-red.svg)](Read_zh.md)
+[![Lang: Zh](https://img.shields.io/badge/语言-中文-red.svg)](Readme_zh.md)
 
 The **NxBCI** SDK enables developers to communicate with Neximind acquisition devices. This guide focuses on setting up the development environment and running demos on **Windows** and **macOS**.
 
