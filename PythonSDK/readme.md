@@ -8,7 +8,7 @@ The **NxBCI** SDK enables developers to communicate with Neximind acquisition de
 
 ---
 
-### 🌐 [中文说明 (Chinese Documentation)](README_zh.md)
+### 🌐 [中文说明 (Chinese Documentation)](Readme_zh.md)
 
 ---
 
