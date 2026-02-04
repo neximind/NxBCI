@@ -80,7 +80,7 @@ python Examples/Replay_demo.py
 ```
 
 ### Example: Hardware Acquisition
-To run with a device, check your serial port name first(You can run the "list_port.py" to list all serial ports):
+To run with a device, check your serial port name first(You can run the "Examples/list_port.py" to list all serial ports):
 * **Windows**: `COM3`, `COM4`, etc.
 * **macOS**: `/dev/tty.usbserial-XXXX` or `/dev/tty.usbmodemXXXX`.
 

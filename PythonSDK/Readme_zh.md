@@ -79,7 +79,7 @@ python Examples/Replay_demo.py
 ```
 
 ### 示例 2: 硬件采集
-若要通过串口连接设备，请先确认您的串口名称(您可以运行list_port.py查看自己电脑当前的串口)：
+若要通过串口连接设备，请先确认您的串口名称(您可以运行Examples/list_port.py查看自己电脑当前的串口)：
 * **Windows**: 通常为 `COM3`, `COM4` 等。
 * **macOS**: 通常为 `/dev/tty.usbserial-XXXX` 或 `/dev/tty.usbmodemXXXX`。
 
