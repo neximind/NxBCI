@@ -2,13 +2,13 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
-[![Lang: En](https://img.shields.io/badge/Lang-English-blue.svg)](Readme_EN.md)
+[![Lang: En](https://img.shields.io/badge/Lang-English-blue.svg)](Readme.md)
 
 **NxBCI** SDK 用于与 Neximind 采集设备进行通信。本文档旨在帮助开发者在 **Windows** 或 **macOS** 系统上搭建开发环境并运行示例代码。
 
 ---
 
-### 🌐 [English Documentation](Readme_EN.md)
+### 🌐 [English Documentation](Readme.md)
 
 ---
 
