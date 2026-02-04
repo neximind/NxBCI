@@ -25,7 +25,7 @@ You can set up the environment using either **Conda** (recommended for isolation
 ### 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/neximind/NxBCI.git](https://github.com/neximind/NxBCI.git)
+git clone https://github.com/neximind/NxBCI.git
 cd NxBCI
 ```
 

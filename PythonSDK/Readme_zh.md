@@ -25,7 +25,7 @@
 ### 1. 克隆代码仓库
 
 ```bash
-git clone [https://github.com/neximind/NxBCI.git](https://github.com/neximind/NxBCI.git)
+git clone https://github.com/neximind/NxBCI.git
 cd NxBCI
 ```
 
