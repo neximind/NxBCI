@@ -1,0 +1,5 @@
+setup.py
+NxBCI.egg-info/PKG-INFO
+NxBCI.egg-info/SOURCES.txt
+NxBCI.egg-info/dependency_links.txt
+NxBCI.egg-info/top_level.txt

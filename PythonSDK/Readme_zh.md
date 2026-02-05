@@ -26,7 +26,7 @@
 
 ```bash
 git clone https://github.com/neximind/NxBCI.git
-cd NxBCI
+cd PythonSDK/NxBCI
 ```
 
 ### 2. 安装依赖库

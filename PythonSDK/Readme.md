@@ -26,7 +26,7 @@ You can set up the environment using either **Conda** (recommended for isolation
 
 ```bash
 git clone https://github.com/neximind/NxBCI.git
-cd NxBCI
+cd PythonSDK/NxBCI
 ```
 
 ### 2. Install Dependencies
