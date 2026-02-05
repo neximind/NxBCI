@@ -25,7 +25,7 @@ if __name__ == "__main__":
     controller = MultiSourceController(
         ports=TARGET_PORTS, 
         save_csv=True, 
-        csv_filename="my_experiment_data.csv"
+        csv_filename=csv_path
     )
     
     # 绘图配置
